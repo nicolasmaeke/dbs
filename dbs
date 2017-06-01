@@ -1,0 +1,60 @@
+﻿-- Table: public.tweet
+
+
+CREATE TABLE public.tweet
+(
+  id integer NOT NULL DEFAULT nextval('tweet_id_seq'::regclass),
+  url character varying(255),
+  text character varying(255) NOT NULL,
+  is_retweet boolean,
+  favourite_count integer,
+  retweet_count integer,
+  zeit character varying(255),
+  original_verfasser character varying(255),
+  absender character varying(255),
+  antwort character varying(255),
+  CONSTRAINT tweet_pkey PRIMARY KEY (id)
+)
+
+
+-- Table: public.hashtag
+
+
+CREATE TABLE public.hashtag
+(
+  id integer NOT NULL DEFAULT nextval('hashtag_id_seq'::regclass),
+  text character varying(255) NOT NULL,
+  CONSTRAINT hashtag_pkey PRIMARY KEY (id)
+)
+
+
+-- Table: public.tritt_zusammen_auf
+
+
+CREATE TABLE public.tritt_zusammen_auf
+(
+  hashtaga integer,
+  hashtagb integer,
+  CONSTRAINT tritt_zusammen_auf_hashtaga_fkey FOREIGN KEY (hashtaga)
+      REFERENCES public.hashtag (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT tritt_zusammen_auf_hashtagb_fkey FOREIGN KEY (hashtagb)
+      REFERENCES public.hashtag (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+
+
+-- Table: public.besitzt
+
+
+CREATE TABLE public.besitzt
+(
+  tweet_id integer,
+  hastag_id integer,
+  CONSTRAINT besitzt_hastag_id_fkey FOREIGN KEY (hastag_id)
+      REFERENCES public.hashtag (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT besitzt_tweet_id_fkey FOREIGN KEY (tweet_id)
+      REFERENCES public.tweet (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
