@@ -1,9 +1,13 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -14,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Properties;
@@ -22,6 +27,15 @@ import java.util.Set;
 import java.util.concurrent.SynchronousQueue;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import net.sf.javaml.clustering.Clusterer;
+import net.sf.javaml.clustering.KMeans;
+import net.sf.javaml.core.Dataset;
+import net.sf.javaml.core.DefaultDataset;
+import net.sf.javaml.core.DenseInstance;
+import net.sf.javaml.core.Instance;
+import net.sf.javaml.core.SparseInstance;
+import net.sf.javaml.tools.data.FileHandler;
 
 public class election {
 
@@ -56,6 +70,20 @@ public class election {
 					verbindungBeenden(conn);
 					
 //					 Möglichkeit, die Tabellen der DB zu leeren: (buggy)
+				
+					
+				} else if (input.equals("test")){
+					String string = "hallo";
+//					System.out.println("hallo".charAt(0));
+					String word = "";
+					for(int i = 0; i < string.length(); i++){
+						word = word + (int)(string.charAt(i)) + ",";
+						System.out.println(string + string.charAt(i));
+					}
+					
+					
+					
+					
 					
 				}else if(input.equals("plattmachen")){
 					System.out.println("Wirklich alle Tabellen der DB unwiderruflich plattmachen? J/N");
@@ -90,6 +118,7 @@ public class election {
 					
 				}else if (input.equals("einlesen")){
 					conn.setAutoCommit(false);
+					String incsv = "";
 					
 					// liest file, generiert Liste<Tweets> und liefert diese zurück
 					
@@ -126,13 +155,11 @@ public class election {
 					for (String element : hashtags){
 						if (!unique.contains(element)){
 							unique.add(element);
+							incsv+= element + "\r\n";
 						}												
 					}
 					
 					
-					
-//					vorhandeneHashtags = new String[unique.size()];
-//					vorhandeneHashtags = unique.toArray(vorhandeneHashtags);
 					
 //					jeder hashtag wird in die DB geschrieben per SQL statement
 					
@@ -144,7 +171,44 @@ public class election {
 						pst.close();
 						conn.commit();
 					}
+					
+//					for (String element : unique) {
+//						Instance tmp = new DenseInstance(1);
+//						
+//						
+//						test.add(tmp);
+//					}
+					
+					
 					System.out.println("hashtags fertig");
+					
+					// TO-DO
+//					Dataset test = new DefaultDataset();
+					
+					
+					
+//					
+//					Clusterer km = new KMeans();
+//					Dataset[] clusters = km.cluster(test);
+//					
+//				    
+//					for (Dataset dataset : clusters) {
+//						System.out.println(dataset);
+//					}
+//					
+//					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
 					
 					for (Tweet tweet : alles){
 						
@@ -178,6 +242,49 @@ public class election {
 							}
 						}
 					}
+					
+					try(Writer writer = new BufferedWriter(new OutputStreamWriter(
+							new FileOutputStream("/home/rob/Downloads/test3.csv"),"utf-8"))){
+						String ObDuBehindertBist = "";
+						ArrayList<String> alleHashs = new ArrayList<String>();
+						
+//						for (Tweet tweet : alles) {
+//							ArrayList<String> hashtagsVonTweet = tweet.getHashtags();
+//							alleHashs.addAll(hashtagsVonTweet);
+//							
+//						}
+						for (String string : unique) {
+							ObDuBehindertBist = ObDuBehindertBist + string +"," + string.length()+ "\r\n";
+						}
+						
+						
+						
+//						for (String string : unique) {
+////							ObDuBehindertBist = ObDuBehindertBist + string +"," + string.length()+ "\r\n";
+//							String word = "";
+//							
+//								int counter = 0;
+//								for (String element : hashtags) {
+//									if(element == string){
+//										counter++;
+//									}
+//								}
+//								ObDuBehindertBist = ObDuBehindertBist + string +"," + string.length()+","+counter+ "\r\n";
+//							
+////							ObDuBehindertBist = ObDuBehindertBist + string +"," + word + "\r\n";
+//						}
+							writer.write(ObDuBehindertBist);
+							System.out.println("hab geschrieben");
+					}  catch(Exception e){
+						System.err.println(e);
+					}
+					
+					
+					
+					
+					
+					
+					
 					
 					System.out.println("Alle Tabellen vollständig generiert.");
 					
@@ -248,6 +355,16 @@ public class election {
 		}
 	}
 	
+//	
+//	public Dataset[] cluster(Dataset data){
+//		
+//		return null;
+//	}
+	
+	
+	
+	
+	
 	public static ArrayList<Tweet> auslesen() throws Exception{
 		
 //		liest file ein, bildet einen langen String mit dem kompletten Inhalt
@@ -283,5 +400,61 @@ public class election {
 		PreparedStatement pst = null;
 		pst = conn.prepareStatement(tweet.insertString());
 		pst.executeUpdate();
+	}
+	
+	public static double diceCoefficientOptimized(String s, String t)
+	{
+		// Verifying the input:
+		if (s == null || t == null)
+			return 0;
+		// Quick check to catch identical objects:
+		if (s == t)
+			return 1;
+	        // avoid exception for single character searches
+	        if (s.length() < 2 || t.length() < 2)
+	            return 0;
+
+		// Create the bigrams for string s:
+		final int n = s.length()-1;
+		final int[] sPairs = new int[n];
+		for (int i = 0; i <= n; i++)
+			if (i == 0)
+				sPairs[i] = s.charAt(i) << 16;
+			else if (i == n)
+				sPairs[i-1] |= s.charAt(i);
+			else
+				sPairs[i] = (sPairs[i-1] |= s.charAt(i)) << 16;
+
+		// Create the bigrams for string t:
+		final int m = t.length()-1;
+		final int[] tPairs = new int[m];
+		for (int i = 0; i <= m; i++)
+			if (i == 0)
+				tPairs[i] = t.charAt(i) << 16;
+			else if (i == m)
+				tPairs[i-1] |= t.charAt(i);
+			else
+				tPairs[i] = (tPairs[i-1] |= t.charAt(i)) << 16;
+
+		// Sort the bigram lists:
+		Arrays.sort(sPairs);
+		Arrays.sort(tPairs);
+
+		// Count the matches:
+		int matches = 0, i = 0, j = 0;
+		while (i < n && j < m)
+		{
+			if (sPairs[i] == tPairs[j])
+			{
+				matches += 2;
+				i++;
+				j++;
+			}
+			else if (sPairs[i] < tPairs[j])
+				i++;
+			else
+				j++;
+		}
+		return (double)matches/(n+m);
 	}
 }
